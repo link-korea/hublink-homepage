@@ -21,7 +21,6 @@
   .brand i{color:var(--cyan)}
   .sub{color:var(--gray);font-size:14px;margin:0 0 28px}
   .userbox{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--gray)}
-  .userbox b{color:var(--navy)}
   .btn{border:none;border-radius:10px;padding:11px 20px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
   .btn-primary{background:linear-gradient(135deg,var(--navy),var(--cyan));color:#fff}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed}
@@ -42,12 +41,12 @@
   .actions{display:flex;gap:12px;align-items:center;position:sticky;bottom:0;background:#F8FAFC;padding:16px 0}
   #toast{font-size:14px;font-weight:600}
   #toast.ok{color:var(--green)} #toast.err{color:var(--red)}
-  .gate{text-align:center;padding:56px 20px}
-  .gate i{font-size:40px;color:var(--cyan);margin-bottom:14px}
+  .gate{text-align:center;padding:48px 20px}
+  .gate i{font-size:38px;color:var(--cyan);margin-bottom:14px}
   .gate h2{margin:0 0 8px;color:var(--navy)}
-  .gate p{color:var(--gray);margin:0 0 24px}
-  #gbtn{display:flex;justify-content:center}
-  .denied{color:var(--red);font-weight:600;margin-top:16px}
+  .gate p{color:var(--gray);margin:0 0 20px}
+  .gate input{max-width:280px;margin:0 auto 14px}
+  .denied{color:var(--red);font-weight:600;margin-top:14px}
   .hidden{display:none!important}
   @media(max-width:640px){
     .row.sites,.row.sols{grid-template-columns:1fr 1fr;}
@@ -62,19 +61,20 @@
   <div class="topbar">
     <div class="brand"><i class="fas fa-circle-nodes"></i> 허브링크 관리자</div>
     <div id="userbox" class="userbox hidden">
-      <span><b id="userEmail"></b> 로그인됨</span>
-      <button class="btn btn-ghost" onclick="signOut()">로그아웃</button>
+      <span>관리자 모드</span>
+      <button class="btn btn-ghost" onclick="lock()">잠금</button>
     </div>
   </div>
   <p class="sub">홈페이지의 이메일·주요 구축 사업장·GAS 솔루션 카드를 관리합니다.</p>
 
-  <!-- 로그인 게이트 -->
+  <!-- 비밀번호 게이트 -->
   <div id="gate" class="card gate">
     <i class="fas fa-lock"></i>
     <h2>관리자 로그인</h2>
-    <p>관리자 계정(master@hublink.co.kr)으로 로그인하세요.</p>
-    <div id="gbtn"></div>
-    <div id="denied" class="denied hidden"></div>
+    <p>관리자 비밀번호를 입력하세요.</p>
+    <input id="passInput" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter')enter()">
+    <div><button class="btn btn-primary" onclick="enter()">들어가기</button></div>
+    <div id="gateMsg" class="denied hidden"></div>
   </div>
 
   <!-- 편집 영역 -->
@@ -111,58 +111,29 @@
 
 </div>
 
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
   // ===== 설정 =====
   const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz6bBzHs0YgwopFeIWT5F69kx0Oma1w7MJjR3wjXWawMe6vfWx0I9WoaSUqsnNAfWrFGw/exec';
-  const CLIENT_ID    = '여기에_OAuth_클라이언트_ID.apps.googleusercontent.com';
-  const ADMIN_EMAIL  = 'master@hublink.co.kr';
 
-  let idToken = null;
-  let config  = { contactEmail:'', sites:[], gasSolutions:[] };
+  let adminPass = '';
+  let config = { contactEmail:'', sites:[], gasSolutions:[] };
 
-  // ===== Google 로그인 =====
-  window.addEventListener('load', initGsi);
-  function initGsi(){
-    if(!window.google || !google.accounts || !google.accounts.id){ return setTimeout(initGsi,200); }
-    google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential });
-    google.accounts.id.renderButton(document.getElementById('gbtn'),
-      { theme:'outline', size:'large', text:'signin_with', locale:'ko', width:260 });
-  }
-
-  function onCredential(resp){
-    idToken = resp.credential;
-    let payload;
-    try { payload = decodeJwt(idToken); } catch(e){ return showDenied('(토큰 해석 실패)'); }
-    if(payload.email !== ADMIN_EMAIL){ return showDenied(payload.email || '알 수 없음'); }
+  // ===== 게이트 =====
+  function enter(){
+    const v = document.getElementById('passInput').value;
+    if(!v){ return gateMsg('비밀번호를 입력하세요'); }
+    adminPass = v;
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('editor').classList.remove('hidden');
     document.getElementById('userbox').classList.remove('hidden');
-    document.getElementById('userEmail').textContent = payload.email;
     loadConfig();
   }
-
-  function showDenied(email){
-    const d = document.getElementById('denied');
-    d.textContent = '권한이 없는 계정입니다: ' + email;
-    d.classList.remove('hidden');
+  function lock(){ adminPass=''; location.reload(); }
+  function gateMsg(m){
+    const d=document.getElementById('gateMsg'); d.textContent=m; d.classList.remove('hidden');
   }
 
-  function signOut(){
-    idToken = null;
-    if(window.google && google.accounts) google.accounts.id.disableAutoSelect();
-    location.reload();
-  }
-
-  function decodeJwt(t){
-    const b = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-    const json = decodeURIComponent(atob(b).split('').map(function(c){
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(json);
-  }
-
-  // ===== 설정 불러오기 (JSONP) =====
+  // ===== 설정 불러오기 (JSONP, 인증 불필요) =====
   function jsonpConfig(){
     return new Promise(function(resolve,reject){
       const cb = '__cfg_' + Date.now();
@@ -179,9 +150,7 @@
   function loadConfig(){
     toast('불러오는 중…','');
     jsonpConfig().then(function(cfg){
-      config = normalize(cfg);
-      renderAll();
-      toast('','');
+      config = normalize(cfg); renderAll(); toast('','');
     }).catch(function(){ toast('설정을 불러오지 못했습니다','err'); });
   }
 
@@ -199,8 +168,7 @@
 
   function renderAll(){
     document.getElementById('emailInput').value = config.contactEmail || '';
-    renderSites();
-    renderSols();
+    renderSites(); renderSols();
   }
 
   function renderSites(){
@@ -234,11 +202,11 @@
 
   // ===== 저장 (no-cors POST → 재조회로 검증) =====
   function saveConfig(){
-    if(!idToken){ return toast('로그인이 필요합니다','err'); }
+    if(!adminPass){ return toast('비밀번호가 필요합니다','err'); }
     const btn = document.getElementById('saveBtn');
     btn.disabled = true; toast('저장 중…','');
     const body = new URLSearchParams({
-      action:'adminSave', idToken: idToken, config: JSON.stringify(config)
+      action:'adminSave', pass: adminPass, config: JSON.stringify(config)
     });
     fetch(GAS_ENDPOINT, { method:'POST', mode:'no-cors', body: body })
       .then(function(){ return new Promise(function(r){ setTimeout(r,1300); }); })
@@ -248,15 +216,14 @@
         const ok = fresh.contactEmail === (config.contactEmail||'')
           && fresh.sites.length === config.sites.length
           && fresh.gasSolutions.length === config.gasSolutions.length;
-        toast(ok ? '저장되었습니다 ✓' : '저장 확인 실패 — 권한/네트워크를 확인하세요', ok?'ok':'err');
+        toast(ok ? '저장되었습니다 ✓' : '저장 실패 — 비밀번호 또는 네트워크를 확인하세요', ok?'ok':'err');
       })
       .catch(function(){ toast('전송 오류가 발생했습니다','err'); })
       .finally(function(){ btn.disabled = false; });
   }
 
   function toast(msg,cls){
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.className = cls || '';
+    const t = document.getElementById('toast'); t.textContent = msg; t.className = cls || '';
   }
 </script>
 </body>
