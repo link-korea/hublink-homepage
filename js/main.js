@@ -243,14 +243,47 @@ if (contactForm) {
             return;
         }
         
-        // Show success message
-        showSuccessModal();
-        
-        // Reset form
-        contactForm.reset();
-        
-        // In a real implementation, you would send this data to a server
-        console.log('Form submitted:', formData);
+        // ===== GAS Web App 으로 전송 (GitHub Pages 정적 호스팅) =====
+        const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz6bBzHs0YgwopFeIWT5F69kx0Oma1w7MJjR3wjXWawMe6vfWx0I9WoaSUqsnNAfWrFGw/exec';
+
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '전송 중...';
+        }
+
+        // CORS 프리플라이트 회피: form-urlencoded + no-cors
+        // 연락처(phone)는 Leading Zero 방어 위해 String 그대로 전송
+        const payload = new URLSearchParams({
+            company: formData.company,
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            inquiryType: formData.inquiryType,
+            message: formData.message
+        });
+
+        fetch(GAS_ENDPOINT, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: payload
+        })
+            .then(() => {
+                // no-cors는 응답을 읽을 수 없어 낙관적 성공 처리
+                // (시트 누적·메일 발송은 서버측에서 수행됨)
+                showSuccessModal();
+                contactForm.reset();
+            })
+            .catch(() => {
+                alert('전송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                }
+            });
     });
 }
 
@@ -454,6 +487,26 @@ if (ceoMessage) {
     ceoMessage.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
     fadeInObserver.observe(ceoMessage);
 }
+// ============================================================
+// 구내통신이란? 섹션 스크롤 리빌 (기존 .visible 패턴과 동일, 스태거 적용)
+// ============================================================
+const gunaeObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+            setTimeout(() => {
+                entry.target.classList.add('visible');
+            }, index * 120);
+            gunaeObserver.unobserve(entry.target);
+        }
+    });
+}, {
+    threshold: 0.12,
+    rootMargin: '0px 0px -40px 0px'
+});
+
+document.querySelectorAll('#gunae .gunae-reveal').forEach((el) => {
+    gunaeObserver.observe(el);
+});
 
 // Observe area distribution cards
 document.querySelectorAll('.area-card').forEach((card, index) => {

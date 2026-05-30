@@ -4158,3 +4158,186 @@ h1, h2, h3, h4, h5, h6 {
         justify-content: center;
     }
 }
+/* ============================================================
+   [삽입] style.css 맨 끝에 아래 전체를 추가
+   구내통신이란? Section — 기존 디자인 토큰 사용
+============================================================ */
+.gunae-intro {
+    padding: var(--section-padding) 0;
+    background: var(--gradient-light);
+    overflow: hidden;
+}
+
+/* --- 스크롤 리빌 (기존 .visible 패턴과 동일) --- */
+.gunae-reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.gunae-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- 도로 비유 비교 --- */
+.gunae-compare {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 24px;
+    margin: 56px 0 72px;
+    flex-wrap: wrap;
+}
+.gunae-road {
+    position: relative;
+    flex: 1 1 320px;
+    max-width: 420px;
+    padding: 40px 32px 40px;
+    border-radius: 20px;
+    background: var(--white);
+    box-shadow: var(--shadow-md);
+    text-align: center;
+    transition: var(--transition-base);
+    overflow: hidden;
+}
+.gunae-road::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 6px;
+    background-image: repeating-linear-gradient(90deg, currentColor 0 22px, transparent 22px 44px);
+    opacity: 0.35;
+    animation: gunae-lane 1.2s linear infinite;
+}
+.gunae-road i { font-size: 40px; margin-bottom: 14px; }
+.gunae-road h4 { font-size: 22px; margin: 6px 0 12px; color: var(--black); }
+.gunae-road p { color: var(--dark-gray); line-height: 1.7; font-size: 15px; word-break: keep-all; }
+.gunae-road-tag {
+    display: inline-block;
+    font-size: 13px; font-weight: 700;
+    padding: 6px 14px; border-radius: 999px;
+    margin-bottom: 10px;
+}
+.gunae-road--normal,
+.gunae-road--normal i { color: var(--medium-gray); }
+.gunae-road--normal .gunae-road-tag { background: var(--light-gray); color: var(--dark-gray); }
+.gunae-road--vip { color: var(--tech-cyan); }
+.gunae-road--vip i { color: var(--primary-navy); }
+.gunae-road--vip .gunae-road-tag { background: var(--gradient-primary); color: var(--white); }
+.gunae-road--vip::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 20px;
+    padding: 2px;
+    background: var(--gradient-primary);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+}
+.gunae-vs {
+    align-self: center;
+    flex: 0 0 auto;
+    font-weight: 800; font-size: 18px;
+    color: var(--medium-gray);
+    animation: gunae-pulse 1.8s ease-in-out infinite;
+}
+
+/* --- 3 개념 카드 --- */
+.gunae-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-bottom: 72px;
+}
+.gunae-card {
+    position: relative;
+    padding: 40px 32px 34px;
+    background: var(--white);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-base);
+    overflow: hidden;
+}
+.gunae-card-num {
+    position: absolute; top: 16px; right: 26px;
+    font-size: 64px; font-weight: 800; line-height: 1;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.12;
+    pointer-events: none;
+}
+.gunae-card-icon {
+    width: 64px; height: 64px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 16px;
+    background: var(--gradient-primary);
+    color: var(--white); font-size: 26px;
+    margin-bottom: 22px;
+    transition: var(--transition-base);
+}
+.gunae-card h3 {
+    font-size: 19px; line-height: 1.45;
+    color: var(--black); margin-bottom: 14px;
+    word-break: keep-all;
+}
+.gunae-card p {
+    color: var(--dark-gray); line-height: 1.75;
+    font-size: 15px; word-break: keep-all;
+}
+
+/* --- 웹툰 --- */
+.gunae-webtoon {
+    margin: 0 0 64px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    background: var(--white);
+}
+.gunae-webtoon img {
+    display: block; width: 100%; height: auto;
+    transition: transform 0.6s ease;
+}
+.gunae-webtoon figcaption {
+    text-align: center; padding: 16px;
+    font-size: 14px; color: var(--medium-gray);
+}
+
+/* --- CTA --- */
+.gunae-cta { text-align: center; }
+.gunae-cta p {
+    font-size: 20px; font-weight: 600;
+    color: var(--primary-navy);
+    margin-bottom: 24px; word-break: keep-all;
+}
+
+/* --- Hover (리빌 이후에도 정상 동작하도록 뒤에 선언) --- */
+.gunae-road:hover { transform: translateY(-6px); box-shadow: var(--shadow-xl); }
+.gunae-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-xl); }
+.gunae-card:hover .gunae-card-icon { transform: scale(1.08) rotate(-4deg); }
+.gunae-webtoon:hover img { transform: scale(1.01); }
+
+/* --- Keyframes --- */
+@keyframes gunae-lane { to { background-position: 44px 0; } }
+@keyframes gunae-pulse {
+    0%, 100% { transform: scale(1);    opacity: 0.6; }
+    50%      { transform: scale(1.18); opacity: 1;   }
+}
+
+/* --- 모바일 반응형 --- */
+@media (max-width: 768px) {
+    .gunae-cards { grid-template-columns: 1fr; gap: 20px; }
+    .gunae-compare { gap: 16px; margin: 36px 0 48px; }
+    .gunae-vs { font-size: 15px; }
+    .gunae-road { padding: 32px 24px; }
+    .gunae-card { padding: 32px 24px 28px; }
+    .gunae-card-num { font-size: 52px; }
+    .gunae-cta p { font-size: 17px; }
+}
+
+/* --- 모션 최소화 환경 배려 --- */
+@media (prefers-reduced-motion: reduce) {
+    .gunae-road::after, .gunae-vs { animation: none; }
+    .gunae-reveal { transition: none; }
+}
